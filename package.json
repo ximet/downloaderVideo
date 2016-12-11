@@ -1,0 +1,22 @@
+{
+  "name": "download-video",
+  "version": "0.0.1",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ximet/downloaderVideo.git"
+  },
+  "author": "XIMet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ximet/downloaderVideo/issues"
+  },
+  "homepage": "https://github.com/ximet/downloaderVideo#readme",
+  "dependencies": {
+    "node-fetch": "^1.6.3"
+  }
+}
