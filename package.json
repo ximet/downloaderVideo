@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ximet/downloaderVideo#readme",
   "dependencies": {
-    "node-fetch": "^1.6.3"
+    "commander": "~2.9.0",
+    "node-fetch": "~1.6.3"
   }
 }
