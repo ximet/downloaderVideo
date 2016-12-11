@@ -13,3 +13,20 @@ if (process.argv.slice(2).length < 2) {
     commander.outputHelp();
     process.exit();
 }
+
+downloadVideo();
+
+
+function downloadVideo () {
+    if (program.email) {
+        authenticate(program.email, program.password)
+            .then(res => {
+                console.log('Authenticated!')
+            })
+            .catch(err => error(err))
+    }
+}
+
+function authenticate (email, password) {
+    new Promise(resolve(), reject()); //not correct(fix this)
+}
