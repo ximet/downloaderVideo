@@ -1,11 +1,10 @@
 const hasTerminalFlag = function (flag, argv) {
-	argv = argv || process.argv;
+	const currentArgv = argv || process.argv;
+	const terminatorPos = currentArgv.indexOf('--');
+	const prefix = /^-{1,2}/.test(flag) ? '' : '--';
+    const position = currentArgv.indexOf(`${prefix}${flag}`);
 
-	var terminatorPos = argv.indexOf('--');
-	var prefix = /^-{1,2}/.test(flag) ? '' : '--';
-	var pos = argv.indexOf(prefix + flag);
-
-	return pos !== -1 && (terminatorPos === -1 ? true : pos < terminatorPos);
+	return position !== -1 && (terminatorPos === -1 ? true : position < terminatorPos);
 };
 
 module.exports = hasTerminalFlag;
