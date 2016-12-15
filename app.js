@@ -20,19 +20,19 @@ if (process.argv.slice(2).length < 2) {
 downloadVideo(commander.email, commander.password);
 
 function downloadVideo (email, password) {
-    authenticate(email, password)
-        .then(item => {
-            console.log('Authenticated!')
-        })
-        .catch(err => console.error(err));
-
-    getVideoData(commander.url)
+    // authenticate(email, password)
+    //     .then(item => {
+    //         console.log('Authenticated!')
+    //     })
+    //     .catch(err => console.error(err));
+    const isProAccount = false;
+    getVideoData(commander.url, isProAccount)
         .then(item => item)
 }
 
 function getCountVideoInPlaylist (source, listURLs) {
     const regexp = /<h4 class="title"><a href="(https:\/\/egghead.io\/lessons\/.+?)">/g;
-    let match = null;
+    let match;
 
     while ((match = regexp.exec(source))) {
         listURLs.push(match[1])
@@ -47,11 +47,32 @@ function downloadLesson () {
 }
 
 function downloadPlaylist (source, lessonURLs) {
-    getCountVideoInPlaylist(source, lessonURLs);
+    return getCountVideoInPlaylist(source, lessonURLs);
     //TODO add download full playlist
 }
 
-function getVideoData (urlValue) {
+function getLessons (lesson) {
+
+    return fetch({
+            uri: `https://egghead.io/api/v1/lessons/${lesson}/next_up`,
+            json: true
+           })
+            .then(response => {
+                const { lessons } = response.list || {lessons: []};
+
+                return lessons.map((lesson) => {
+                    console.log(lesson.download_url);
+                    const pattern = /https:\/\/.*\/lessons\/.*\/(.*)\?.*/;
+                    const [url, filename] = pattern.exec(lesson.download_url);
+
+                    console.log({url, filename});
+                    return {url, filename}
+                })
+            })
+        .catch(error => console.log(error));
+}
+
+function getVideoData (urlValue, isProAccount) {
         const [, isLesson] = /egghead.io\/lessons\/([^\?]*)/.exec(urlValue) || [];
 
         return fetch(urlValue)
@@ -60,8 +81,45 @@ function getVideoData (urlValue) {
                     downloadLesson()
                 } else {
                     let lessonURLs = downloadPlaylist(source, []);
+
+                    if (isProAccount) {
+                        const firstLesson = lessonURLs[0];
+                        const pattern = /egghead.io\/lessons\/(.*)\?/;
+                        const [, lessonSlug] = pattern.exec(firstLesson) || [];
+                        getLessons(lessonSlug);
+                    }
+
+                    console.log('Fetching lesson pages');
+                    const promises = lessonURLs.map(getLessonsObjectInPromiseFormat);
                 }
         });
+}
+
+function getLessonsObjectInPromiseFormat (url) {
+    return new Promise((resolve, reject) => {
+        fetch(url).then((source) => {
+            const videoData = getNameAndUrlLesson(source);
+            console.log(videoData);
+            if (videoData) {
+                resolve(videoData)
+            } else {
+                reject(url)
+            }
+        }, () => {
+            reject(url)
+        })
+    })
+}
+
+function getNameAndUrlLesson (source) {
+    const re = /<meta itemprop="name" content="([^"]+?)".+?<meta itemprop="contentURL" content="http[^"]+?.wistia.com\/deliveries\/(.+?)\.bin"/
+    const result = re.exec(source)
+    if (result) {
+        return {
+            filename: result[1],
+            url: `https://embed-ssl.wistia.com/deliveries/${result[2]}/file.mp4`
+        }
+    }
 }
 
 
