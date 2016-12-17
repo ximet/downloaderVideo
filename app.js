@@ -3,6 +3,7 @@ const commander = require('commander');
 const requestPromise = require('request-promise');
 const fetch = requestPromise.defaults({jar: true});
 const { authenticate } = require('./services/AuthService.js');
+// const { getVideoData } = require('./services/VideoURLService.js');
 
 commander
     .version('0.0.1')
@@ -27,7 +28,9 @@ function downloadVideo (email, password) {
     //     .catch(err => console.error(err));
     const isProAccount = false;
     getVideoData(commander.url, isProAccount)
-        .then(item => item)
+        .then(videos => {
+            console.log(videos)
+        })
 }
 
 function getCountVideoInPlaylist (source, listURLs) {
@@ -46,9 +49,20 @@ function downloadLesson () {
     //TODO add downloader for 1 lesson
 }
 
-function downloadPlaylist (source, lessonURLs) {
-    return getCountVideoInPlaylist(source, lessonURLs);
-    //TODO add download full playlist
+function downloadPlaylist (source, lessonURLs, isProAccount) {
+    const correctLessonsURLs = getCountVideoInPlaylist(source, lessonURLs);
+
+    if (isProAccount) {
+        const firstLesson = lessonURLs[0];
+        const pattern = /egghead.io\/lessons\/(.*)\?/;
+        const [, lessonSlug] = pattern.exec(firstLesson) || [];
+        getLessons(lessonSlug);
+    }
+
+    console.log('Fetching lesson pages');
+    const promises = correctLessonsURLs.map(getLessonsObjectInPromiseFormat);
+
+    return getVideoUrls(promises);
 }
 
 function getLessons (lesson) {
@@ -65,7 +79,6 @@ function getLessons (lesson) {
                     const pattern = /https:\/\/.*\/lessons\/.*\/(.*)\?.*/;
                     const [url, filename] = pattern.exec(lesson.download_url);
 
-                    console.log({url, filename});
                     return {url, filename}
                 })
             })
@@ -80,18 +93,22 @@ function getVideoData (urlValue, isProAccount) {
                 if (isLesson) {
                     downloadLesson()
                 } else {
-                    let lessonURLs = downloadPlaylist(source, []);
-
-                    if (isProAccount) {
-                        const firstLesson = lessonURLs[0];
-                        const pattern = /egghead.io\/lessons\/(.*)\?/;
-                        const [, lessonSlug] = pattern.exec(firstLesson) || [];
-                        getLessons(lessonSlug);
-                    }
-
-                    console.log('Fetching lesson pages');
-                    const promises = lessonURLs.map(getLessonsObjectInPromiseFormat);
+                    return downloadPlaylist(source, [], isProAccount);
                 }
+        });
+}
+
+function getVideoUrls(lessons) {
+    return Promise.all(lessons.map(reflector))
+        .then(result => {
+            const videoURLs = result.filter(v => (v.state === 'resolved')).map(v => v.value);
+            const failed = result.filter(v => (v.state === 'rejected'));
+
+            if (failed.length) {
+                console.log(`Failed to parse the following lesson pages: ${failed.map(v => `'${v.value}'`).join(',')}. They might be for pro subscribers only`, false)
+            }
+
+            return videoURLs;
         });
 }
 
@@ -99,7 +116,6 @@ function getLessonsObjectInPromiseFormat (url) {
     return new Promise((resolve, reject) => {
         fetch(url).then((source) => {
             const videoData = getNameAndUrlLesson(source);
-            console.log(videoData);
             if (videoData) {
                 resolve(videoData)
             } else {
@@ -112,8 +128,8 @@ function getLessonsObjectInPromiseFormat (url) {
 }
 
 function getNameAndUrlLesson (source) {
-    const re = /<meta itemprop="name" content="([^"]+?)".+?<meta itemprop="contentURL" content="http[^"]+?.wistia.com\/deliveries\/(.+?)\.bin"/
-    const result = re.exec(source)
+    const regExp = /<meta itemprop="name" content="([^"]+?)".+?<meta itemprop="contentURL" content="http[^"]+?.wistia.com\/deliveries\/(.+?)\.bin"/;
+    const result = regExp.exec(source);
     if (result) {
         return {
             filename: result[1],
@@ -122,4 +138,7 @@ function getNameAndUrlLesson (source) {
     }
 }
 
-
+function reflector (promise) {
+    return promise.then(x => ({state: 'resolved', value: x}),
+        e => ({state: 'rejected', value: e}))
+}
