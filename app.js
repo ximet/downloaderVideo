@@ -1,9 +1,6 @@
-const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const request = require('request');
-const requestPromise = require('request-promise');
-const fetch = requestPromise.defaults({jar: true});
+
 const { authenticate } = require('./services/AuthService.js');
 const { getVideoData } = require('./services/VideoURLService.js');
 const { saveVideosToPath } = require('./services/StreamService.js');
@@ -27,10 +24,10 @@ workMain(commander.email, commander.password, outputDir, isProAccount);
 
 function workMain (email, password, outputDir, isProAccount) {
     authenticate(email, password)
-        .then(item => {
+        .then(() => {
             console.log('Authenticated!')
         })
-        .then(item => {
+        .then(() => {
             getVideoData(commander.url, isProAccount)
                 .then(videos => {
                     saveVideosToPath(videos, outputDir);
