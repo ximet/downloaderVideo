@@ -6,6 +6,7 @@ const requestPromise = require('request-promise');
 const fetch = requestPromise.defaults({jar: true});
 const { authenticate } = require('./services/AuthService.js');
 const { getVideoData } = require('./services/VideoURLService.js');
+const { saveVideosToPath } = require('./services/StreamService.js');
 
 commander
     .version('0.0.1')
@@ -19,61 +20,24 @@ if (process.argv.slice(2).length < 2) {
     commander.outputHelp();
     process.exit();
 }
+const isProAccount = false;
 const outputDir = path.resolve(__dirname, 'video');
 
-workMain(commander.email, commander.password, outputDir);
+workMain(commander.email, commander.password, outputDir, isProAccount);
 
-function workMain (email, password, outputDir) {
-    // authenticate(email, password)
-    //     .then(item => {
-    //         console.log('Authenticated!')
-    //     })
-    //     .catch(err => console.error(err));
-    const isProAccount = false;
-    getVideoData(commander.url, isProAccount)
-        .then(videos => {
-            if (!videos.length) {
-                console.log('no video found!')
-            }
-            createOutputDirectoryIfNeeded(outputDir);
-
-            videos.map((video, index) => {
-                const labelVideo = `${index + 1}) ${video.filename}`;
-                const pathToVideo = path.join(outputDir, labelVideo);
-                const stream = fs.createWriteStream(pathToVideo);
-
-                getStreamVideoUrl(stream, video.url)
-                    .then(result => stream.close());
-            });
+function workMain (email, password, outputDir, isProAccount) {
+    authenticate(email, password)
+        .then(item => {
+            console.log('Authenticated!')
         })
-        .then(result => console.log('Done! Thank you!'))
+        .then(item => {
+            getVideoData(commander.url, isProAccount)
+                .then(videos => {
+                    saveVideosToPath(videos, outputDir);
+                })
+                .then(result => console.log('Done! Thank you!'))
+        })
+        .catch(err => console.error(err));
+
 }
 
-function getStreamVideoUrl (stream, url) {
-    return new Promise((resolve, reject) => {
-        request(url)
-            .on('error', () => {
-                error(`download of '${url}' failed!`, false);
-                reject()
-            })
-            .on('end', () => {
-                resolve();
-            })
-            .pipe(stream);
-    })
-}
-
-function createOutputDirectoryIfNeeded (outputDir) {
-    try {
-        const stats = fs.lstatSync(outputDir);
-        if (!stats.isDirectory()) {
-            console.log(`Can't create the output directory '${outputDir}' because a file with the same name exists`)
-        }
-    } catch (e) {
-        try {
-            fs.mkdirSync(outputDir)
-        } catch (err) {
-            console.log(`Creating the output directory '${outputDir}' failed with error '${err}'`)
-        }
-    }
-}
