@@ -35,20 +35,18 @@ function workMain (email, password, outputDir) {
             if (!videos.length) {
                 console.log('no video found!')
             }
-            console.log(`Found ${videos.length} ${(videos.length) > 1 ? 'videos' : 'video'}`)
-
             createOutputDirectoryIfNeeded(outputDir);
 
-            videos.map(video => {
-                const labelVideo = video.filename;
-                const stream = fs.createWriteStream(labelVideo);
+            videos.map((video, index) => {
+                const labelVideo = `${index + 1}) ${video.filename}`;
+                const pathToVideo = path.join(outputDir, labelVideo);
+                const stream = fs.createWriteStream(pathToVideo);
 
                 getStreamVideoUrl(stream, video.url)
                     .then(result => stream.close());
             });
-
-            console.log('Done! Thank you!');
         })
+        .then(result => console.log('Done! Thank you!'))
 }
 
 function getStreamVideoUrl (stream, url) {
