@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const request = require('request');
+const { streamFetcher } = require('./FetcherService.js');
 
 function saveVideosToPath (videos, outputDir) {
     if (!videos.length) {
@@ -20,15 +20,7 @@ function saveVideosToPath (videos, outputDir) {
 
 function getStreamVideoUrl (stream, url) {
     return new Promise((resolve, reject) => {
-        request(url)
-            .on('error', () => {
-                error(`download of '${url}' failed!`, false);
-                reject()
-            })
-            .on('end', () => {
-                resolve();
-            })
-            .pipe(stream);
+        streamFetcher(url, stream, resolve, reject);
     })
 }
 
