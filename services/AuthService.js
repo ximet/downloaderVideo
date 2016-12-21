@@ -1,10 +1,9 @@
-const requestPromise = require('request-promise');
-const fetch = requestPromise.defaults({jar: true});
+const { fetcher } = require('./FetcherService.js');
 
 const SIGN_IN_URL = 'https://egghead.io/users/sign_in';
 
 const getToken = () => {
-    return fetch(SIGN_IN_URL)
+    return fetcher(SIGN_IN_URL)
         .then(body => {
             const pattern = /<meta name="csrf-token" content="(.*)" \/>/;
             const [, CSRFToken] = pattern.exec(body) || [];
@@ -28,7 +27,7 @@ const authenticate = (email, password) => {
                 resolveWithFullResponse: true
             };
         })
-        .then(options => fetch(options))
+        .then(options => fetcher(options))
         .then(response => {
             if (response.statusCode !== 302) {
                 throw Error('Failed to authenticate.');

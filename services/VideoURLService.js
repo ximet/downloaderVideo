@@ -1,10 +1,9 @@
-const requestPromise = require('request-promise');
-const fetch = requestPromise.defaults({jar: true});
+const { fetcher } = require('./FetcherService.js');
 
 function getVideoData (urlValue, isProAccount) {
     const [, isLesson] = /egghead.io\/lessons\/([^\?]*)/.exec(urlValue) || [];
 
-    return fetch(urlValue)
+    return fetcher(urlValue)
         .then(source => {
             if (isLesson) {
                 downloadLesson()
@@ -30,7 +29,7 @@ function getVideoUrls(lessons) {
 
 function getLessonsObjectInPromiseFormat (url) {
     return new Promise((resolve, reject) => {
-        fetch(url).then((source) => {
+        fetcher(url).then((source) => {
             const videoData = getNameAndUrlLesson(source);
             if (videoData) {
                 resolve(videoData)
@@ -95,7 +94,7 @@ function downloadPlaylist (source, lessonURLs, isProAccount) {
 
 function getLessons (lesson) {
 
-    return fetch({
+    return fetcher({
         uri: `https://egghead.io/api/v1/lessons/${lesson}/next_up`,
         json: true
     })
