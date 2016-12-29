@@ -1,4 +1,5 @@
 const { fetcher } = require('./FetcherService.js');
+const { executorRegExp, patternSearchLinkLessonEgghead } = require('./RegExpService.js');
 
 function getVideoData (urlValue, isProAccount) {
     const [, isLesson] = /egghead.io\/lessons\/([^\?]*)/.exec(urlValue) || [];
@@ -102,8 +103,8 @@ function getLessons (lesson) {
             const { lessons } = response.list || {lessons: []};
 
             return lessons.map((lesson) => {
-                const pattern = /https:\/\/.*\/lessons\/.*\/(.*)\?.*/;
-                const [url, filename] = pattern.exec(lesson.download_url);
+
+                const [url, filename] = executorRegExp(patternSearchLinkLessonEgghead, lesson.download_url);
 
                 return {url, filename}
             })
