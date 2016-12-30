@@ -5,6 +5,8 @@ const patternTitleLessonInCourseEgghead = /<meta itemprop="name" content="([^"]+
 const patternGetVideoDataLessonsCourseEgghead = /egghead.io\/lessons\/([^\?]*)/;
 const patternGetAuthTokenEgghead = /<meta name="csrf-token" content="(.*)" \/>/;
 
+const patternCheckURLIsYoutube = /https:\/\/www.youtube.com\/[a-zA-Z1-9?=+#@&*]+/;
+
 const executorRegExp = (pattern, string) => {
     return pattern.exec(string);
 };

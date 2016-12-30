@@ -1,9 +1,7 @@
 const path = require('path');
 const commander = require('commander');
 
-const { authenticate } = require('./services/AuthService.js');
-const { getVideoData } = require('./services/VideoURLService.js');
-const { saveVideosToPath } = require('./services/StreamService.js');
+const { Strategy, defenitionStrategy } = require('./services/StrategyService.js');
 
 commander
     .version('0.0.1')
@@ -20,21 +18,12 @@ if (process.argv.slice(2).length < 2) {
 const isProAccount = false;
 const outputDir = path.resolve(__dirname, 'video');
 
-workMain(commander.email, commander.password, outputDir, isProAccount);
+workMain(commander.email, commander.password, commander.url, outputDir, isProAccount);
 
-function workMain (email, password, outputDir, isProAccount) {
-    authenticate(email, password)
-        .then(() => {
-            console.log('Authenticated!')
-        })
-        .then(() => {
-            getVideoData(commander.url, isProAccount)
-                .then(videos => {
-                    saveVideosToPath(videos, outputDir);
-                })
-                .then(result => console.log('Done! Thank you!'))
-        })
-        .catch(err => console.error(err));
+function workMain (email, password, url, outputDir, isProAccount) {
+    const currentStrategy = defenitionStrategy(email, password, url, outputDir, isProAccount);
+    const objectStrategy = new Strategy(currentStrategy);
 
+    objectStrategy.run();
 }
 
