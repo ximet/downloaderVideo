@@ -1,12 +1,12 @@
 const { fetcher } = require('./FetcherService.js');
+const { executorRegExp, patternGetAuthTokenEgghead} = require('./RegExpService.js');
 
 const SIGN_IN_URL = 'https://egghead.io/users/sign_in';
 
 const getToken = () => {
     return fetcher(SIGN_IN_URL)
         .then(body => {
-            const pattern = /<meta name="csrf-token" content="(.*)" \/>/;
-            const [, CSRFToken] = pattern.exec(body) || [];
+            const [, CSRFToken] = executorRegExp(patternGetAuthTokenEgghead, body) || [];
 
             return CSRFToken;
         });

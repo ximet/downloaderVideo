@@ -1,8 +1,14 @@
 const { fetcher } = require('./FetcherService.js');
-const { executorRegExp, patternSearchLinkLessonEgghead } = require('./RegExpService.js');
+const { executorRegExp,
+        patternSearchLinkLessonEgghead,
+        patternSearchUrlToLessonEgghead,
+        patternCountLessonInCourseEgghead,
+        patternTitleLessonInCourseEgghead,
+        patternGetVideoDataLessonsCourseEgghead
+} = require('./RegExpService.js');
 
 function getVideoData (urlValue, isProAccount) {
-    const [, isLesson] = /egghead.io\/lessons\/([^\?]*)/.exec(urlValue) || [];
+    const [, isLesson] = executorRegExp(patternGetVideoDataLessonsCourseEgghead, urlValue) || [];
 
     return fetcher(urlValue)
         .then(source => {
@@ -44,8 +50,8 @@ function getLessonsObjectInPromiseFormat (url) {
 }
 
 function getNameAndUrlLesson (source) {
-    const regExp = /<meta itemprop="name" content="([^"]+?)".+?<meta itemprop="contentURL" content="http[^"]+?.wistia.com\/deliveries\/(.+?)\.bin"/;
-    const result = regExp.exec(source);
+    const result = executorRegExp(patternTitleLessonInCourseEgghead, source);
+
     if (result) {
         return {
             filename: result[1],
@@ -62,10 +68,9 @@ function reflector (promise) {
 
 
 function getCountVideoInPlaylist (source, listURLs) {
-    const regexp = /<h4 class="title"><a href="(https:\/\/egghead.io\/lessons\/.+?)">/g;
     let match;
 
-    while ((match = regexp.exec(source))) {
+    while ((match = executorRegExp(patternCountLessonInCourseEgghead, source))) {
         listURLs.push(match[1])
     }
     console.log(`Found ${listURLs.length} ${(listURLs.length) > 1 ? 'lessons' : 'lesson'}`);
@@ -82,8 +87,7 @@ function downloadPlaylist (source, lessonURLs, isProAccount) {
 
     if (isProAccount) {
         const firstLesson = lessonURLs[0];
-        const pattern = /egghead.io\/lessons\/(.*)\?/;
-        const [, lessonSlug] = pattern.exec(firstLesson) || [];
+        const [, lessonSlug] = executorRegExp(patternSearchUrlToLessonEgghead, firstLesson) || [];
         getLessons(lessonSlug);
     }
 
