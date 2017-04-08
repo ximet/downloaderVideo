@@ -4,8 +4,6 @@ const { saveVideosToPath } = require('./services/StreamService.js');
 
 class Strategy {
     constructor (strategy) {
-        super();
-
         this.strategy = strategy;
     }
 
@@ -15,7 +13,7 @@ class Strategy {
 
 }
 
-const defenitionStrategy = (email, password, url, outputDir, isProAccount) => {
+const definitionStrategy = (email, password, url, outputDir, isProAccount) => {
     return strategyEgghead(email, password, url, outputDir, isProAccount); //ToDo need fix
 };
 
@@ -35,5 +33,5 @@ const strategyEgghead = (email, password, url, outputDir, isProAccount) => {
 };
 
 module.exports = {
-    Strategy, defenitionStrategy
+    Strategy, definitionStrategy
 };

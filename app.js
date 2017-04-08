@@ -1,7 +1,7 @@
 const path = require('path');
 const commander = require('commander');
 
-const { Strategy, defenitionStrategy } = require('./services/StrategyService.js');
+const { Strategy, definitionStrategy } = require('./services/StrategyService.js');
 
 commander
     .version('0.0.1')
@@ -21,7 +21,7 @@ const outputDir = path.resolve(__dirname, 'video');
 workMain(commander.email, commander.password, commander.url, outputDir, isProAccount);
 
 function workMain (email, password, url, outputDir, isProAccount) {
-    const currentStrategy = defenitionStrategy(email, password, url, outputDir, isProAccount);
+    const currentStrategy = definitionStrategy(email, password, url, outputDir, isProAccount);
     const objectStrategy = new Strategy(currentStrategy);
 
     objectStrategy.run();
