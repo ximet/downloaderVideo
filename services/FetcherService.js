@@ -1,5 +1,3 @@
-// const requestPromise = require('request-promise');
-// const fetch = requestPromise.defaults({jar: true});
 const request = require('request');
 const REQUEST_AND_CONNECT_TIMEOUT = 30000;
 
