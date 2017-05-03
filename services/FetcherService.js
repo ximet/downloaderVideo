@@ -18,10 +18,10 @@ const fetcher = (options) => {
     return new Promise((resolve, reject) => {
         const customOptions = parseOptions(options);
 
-        const XHR = new window.XMLHttpRequest();
+        let XHR = new window.XMLHttpRequest();
 
         XHR.open(customOptions.method, customOptions.url, true);
-
+        XHR = getContentType(customOptions, XHR);
         XHR.timeout = REQUEST_AND_CONNECT_TIMEOUT;
 
         XHR.onreadystatechange = function () {
@@ -39,8 +39,24 @@ const fetcher = (options) => {
         XHR.onabort = reject;
         XHR.ontimeout = reject;
 
-        XHR.send();
+        customOptions.method === 'GET' ? XHR.send() : XHR.send(new FormData(customOptions.form));
     });
+};
+
+const getContentType = (options, xhr) => {
+    const boundary = String(Math.random()).slice(2);
+
+    if(options.method === 'GET') {
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    }
+    else if(options.json) {
+        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+    }
+    else {
+        xhr.setRequestHeader('Content-Type', 'multipart/form-data; boundary=' + boundary);
+    }
+
+    return xhr;
 };
 
 const parseOptions = (options) => {
