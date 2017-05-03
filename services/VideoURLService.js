@@ -100,7 +100,7 @@ function downloadPlaylist (source, lessonURLs, isProAccount) {
 function getLessons (lesson) {
 
     return fetcher({
-        uri: `https://egghead.io/api/v1/lessons/${lesson}/next_up`,
+        url: `https://egghead.io/api/v1/lessons/${lesson}/next_up`,
         json: true
     })
         .then(response => {

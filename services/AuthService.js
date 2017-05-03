@@ -17,7 +17,7 @@ const authenticate = (email, password) => {
         .then(token => {
             return {
                 method: 'POST',
-                uri: SIGN_IN_URL,
+                url: SIGN_IN_URL,
                 form: {
                     'user[email]': email,
                     'user[password]': password,
