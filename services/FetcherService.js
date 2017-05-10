@@ -18,7 +18,7 @@ const fetcher = (options) => {
     return new Promise((resolve, reject) => {
         const customOptions = parseOptions(options);
 
-        let XHR = new window.XMLHttpRequest();
+        let XHR = new XMLHttpRequest();
 
         XHR.open(customOptions.method, customOptions.url, true);
         XHR = getContentType(customOptions, XHR);
@@ -75,7 +75,31 @@ const parseOptions = (options) => {
     return currentOptions;
 };
 
+const streamFetch = (options, onStream) => {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 3) {
+                const freshData = xhr.response.substr(xhr.seenBytes);
+
+                xhr.seenBytes = xhr.responseText.length;
+                onStream(freshData);
+            }
+        };
+
+        xhr.onerror = reject;
+
+        XHR.open(customOptions.method, customOptions.url, true);
+
+        XHR = getContentType(customOptions, XHR);
+
+        xhr.send(options.body);
+    });
+};
+
 module.exports = {
-    fetcher, streamFetcher
+    fetcher, streamFetcher, streamFetch
 };
 
