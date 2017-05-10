@@ -79,7 +79,6 @@ const streamFetch = (options, onStream) => {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
-
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 3) {
                 const freshData = xhr.response.substr(xhr.seenBytes);
@@ -87,6 +86,37 @@ const streamFetch = (options, onStream) => {
                 xhr.seenBytes = xhr.responseText.length;
                 onStream(freshData);
             }
+        };
+
+        xhr.onload = function() {
+            const status = xhr.status;
+            const type = xhr.getResponseHeader('content-type') || '';
+            let body = xhr.responseText;
+
+
+            if (status < 100 || status > 527) {
+                return reject(new TypeError('Network request failed'));
+            }
+            if (type.indexOf('application/json') !== -1) {
+                try {
+                    body = JSON.parse(body);
+                }
+                catch(e) {
+                    reject(new TypeError('Not correct JSON'));
+                }
+            }
+            else if ('response' in xhr) {
+                body = xhr.response;
+            }
+
+            const options = {
+                status: status,
+                statusText: xhr.statusText,
+                body: body,
+                xhr: xhr
+            };
+
+            resolve(options);
         };
 
         xhr.onerror = reject;
